@@ -13,5 +13,11 @@ public interface WantedBookRepository extends JpaRepository<WantedBook, UUID> {
     @Query("SELECT wb.book FROM WantedBook wb where wb.userId=:userId")
     List<Book> findBooksByUserId(@Param("userId") UUID userId);
     boolean existsByUserIdAndBook(UUID userId, Book book);
+    List<WantedBook> findByUserId(UUID userId);
+
+    List<WantedBook> findByBookIn(List<Book> books);
+
+    boolean existsByUserIdAndBookIn(UUID userId, List<Book> books);
+
 
 }

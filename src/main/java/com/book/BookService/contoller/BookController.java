@@ -1,10 +1,12 @@
 package com.book.BookService.contoller;
 
+import com.book.BookService.Security.SecurityUtil;
 import com.book.BookService.dto.AddOwnedBookDTO;
 import com.book.BookService.dto.AddWantedBookDTO;
 import com.book.BookService.dto.RequestBookDTO;
 import com.book.BookService.entity.Book;
 import com.book.BookService.service.BookService;
+import com.book.BookService.service.MatchService;
 import com.book.BookService.service.OwnedBookService;
 import com.book.BookService.service.WantedBookService;
 import org.springframework.http.HttpStatus;
@@ -21,10 +23,12 @@ public class BookController {
     private BookService bookService;
     private OwnedBookService ownedBookService;
     private WantedBookService wantedBookService;
-    public BookController(BookService bookService,OwnedBookService ownedBookService,WantedBookService wantedBookService){
+    private MatchService matchService;
+    public BookController(BookService bookService,OwnedBookService ownedBookService,WantedBookService wantedBookService, MatchService matchService){
         this.bookService= bookService;
         this.ownedBookService = ownedBookService;
         this.wantedBookService=wantedBookService;
+        this.matchService = matchService;
     }
 
     @GetMapping("/all")
@@ -39,25 +43,31 @@ public class BookController {
 
     @GetMapping("/owned")
     public List<Book> ownedBooks(){
-        UUID userid= UUID.randomUUID();
-        return ownedBookService.ownedBooks(userid);
-    }
+        UUID userId = SecurityUtil.getCurrentUserId();
+        return ownedBookService.ownedBooks(userId);
+     }
     @PostMapping("/owned")
     public ResponseEntity<String> addOwnedBook(@RequestBody AddOwnedBookDTO dto) {
-        ownedBookService.addOwnedBook(dto);
+        UUID userId = SecurityUtil.getCurrentUserId();
+        ownedBookService.addOwnedBook(dto, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body("Owned book added successfully");
     }
     @GetMapping("/wanted")
     public List<Book> getWantedBooks(){
-        UUID userid= UUID.randomUUID();
-        userid = UUID.fromString("99999999-0000-0000-0000-000000000001");
-        return  wantedBookService.getWantedBooks(userid);
+        UUID userId = SecurityUtil.getCurrentUserId();
+        return  wantedBookService.getWantedBooks(userId);
     }
 
     @PostMapping("/wanted")
     public ResponseEntity<String> addWantedBooks(@RequestBody AddWantedBookDTO dto){
-        wantedBookService.addWantedBook(dto);
+        UUID userId = SecurityUtil.getCurrentUserId();
+        wantedBookService.addWantedBook(dto, userId);
         return  ResponseEntity.status(HttpStatus.CREATED).body("Wanted book added successfully");
+    }
+    @GetMapping("/exchange/matches")
+    public void matched(){
+        UUID currentUserId = SecurityUtil.getCurrentUserId();
+          matchService.findMatches(currentUserId);
     }
 
 

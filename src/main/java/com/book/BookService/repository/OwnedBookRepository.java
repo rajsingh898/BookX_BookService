@@ -15,6 +15,10 @@ public interface OwnedBookRepository extends JpaRepository<OwnedBook, UUID> {
     @Query("SELECT ob.book FROM OwnedBook ob WHERE ob.userId = :userId")
     List<Book> findBooksByUserId(@Param("userId") UUID userId);
     boolean existsByUserIdAndBook(UUID userId, Book book);
+    List<OwnedBook> findByUserId(UUID userId);
+    List<OwnedBook> findByBookIn(List<Book> books);
+    boolean existsByUserIdAndBookIn(UUID userId, List<Book> books);
+
 
 
 }

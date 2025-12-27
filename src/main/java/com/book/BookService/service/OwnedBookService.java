@@ -26,7 +26,7 @@ public class OwnedBookService {
     }
 
     @Transactional
-    public void addOwnedBook(AddOwnedBookDTO dto) {
+    public void addOwnedBook(AddOwnedBookDTO dto, UUID userId) {
 
         Book book = bookRepository
                 .findByTitleAndAuthorAndGenre(dto.getTitle(), dto.getAuthor(), dto.getGenre())
@@ -38,7 +38,7 @@ public class OwnedBookService {
                     return bookRepository.save(b);
                 });
 
-        if (ownedBookRepository.existsByUserIdAndBook(dto.getUserId(), book)) {
+        if (ownedBookRepository.existsByUserIdAndBook(userId, book)) {
             throw new DuplicateResourceException(
                     "Owned book already exists for this user"
             );
@@ -46,7 +46,7 @@ public class OwnedBookService {
 
         OwnedBook ownedBook = new OwnedBook();
         ownedBook.setId(UUID.randomUUID());
-        ownedBook.setUserId(dto.getUserId());
+        ownedBook.setUserId(userId);
         ownedBook.setBook(book);
         ownedBook.setCondition(dto.getCondition());
         ownedBook.setReadStatus(dto.getReadStatus());

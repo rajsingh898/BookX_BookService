@@ -29,7 +29,7 @@ public class WantedBookService {
     }
 
     @Transactional
-    public void addWantedBook(AddWantedBookDTO dto) {
+    public void addWantedBook(AddWantedBookDTO dto, UUID userId) {
 
         Book book = bookRepository
                 .findByTitleAndAuthorAndGenre(dto.getTitle(), dto.getAuthor(), dto.getGenre())
@@ -41,14 +41,14 @@ public class WantedBookService {
                     return bookRepository.save(b);
                 });
 
-        if (wantedBookRepository.existsByUserIdAndBook(dto.getUserId(), book)) {
+        if (wantedBookRepository.existsByUserIdAndBook(userId, book)) {
             throw new DuplicateResourceException(
                     "Wanted book already exists for this user"
             );
         }
 
         WantedBook wantedBook = new WantedBook();
-        wantedBook.setUserId(dto.getUserId());
+        wantedBook.setUserId(userId);
         wantedBook.setBook(book);
 
         wantedBookRepository.save(wantedBook);

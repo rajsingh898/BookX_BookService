@@ -6,7 +6,6 @@ import lombok.Setter;
 import java.util.UUID;
 @Getter@Setter
 public class AddOwnedBookDTO {
-    private UUID userId;
 
     // Book identity
     private String title;
