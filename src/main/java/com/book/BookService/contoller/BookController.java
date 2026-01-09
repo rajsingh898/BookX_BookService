@@ -1,9 +1,7 @@
 package com.book.BookService.contoller;
 
 import com.book.BookService.Security.SecurityUtil;
-import com.book.BookService.dto.AddOwnedBookDTO;
-import com.book.BookService.dto.AddWantedBookDTO;
-import com.book.BookService.dto.RequestBookDTO;
+import com.book.BookService.dto.*;
 import com.book.BookService.entity.Book;
 import com.book.BookService.service.BookService;
 import com.book.BookService.service.MatchService;
@@ -42,7 +40,7 @@ public class BookController {
     }
 
     @GetMapping("/owned")
-    public List<Book> ownedBooks(){
+    public List<MyOwnedBookDto> ownedBooks(){
         UUID userId = SecurityUtil.getCurrentUserId();
         return ownedBookService.ownedBooks(userId);
      }
@@ -52,6 +50,25 @@ public class BookController {
         ownedBookService.addOwnedBook(dto, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body("Owned book added successfully");
     }
+    @DeleteMapping("/owned")
+    public ResponseEntity<String> removeOwnedBooks(@RequestParam UUID bookId){
+        UUID userId = SecurityUtil.getCurrentUserId();
+        ownedBookService.removeOwnedBook(bookId, userId);
+        return  ResponseEntity.status(HttpStatus.OK).body("Owned book removed successfully");
+    }
+
+
+
+    @PatchMapping("/update")
+  public MyOwnedBookDto  updateOwnedBook(@RequestParam  UUID bookId,@RequestBody UpdateOwnedBookRequest request) {
+                UUID userId = SecurityUtil.getCurrentUserId();
+               return ownedBookService.updateOwnedBook(bookId, userId, request);
+           }
+
+
+
+
+
     @GetMapping("/wanted")
     public List<Book> getWantedBooks(){
         UUID userId = SecurityUtil.getCurrentUserId();
@@ -63,6 +80,12 @@ public class BookController {
         UUID userId = SecurityUtil.getCurrentUserId();
         wantedBookService.addWantedBook(dto, userId);
         return  ResponseEntity.status(HttpStatus.CREATED).body("Wanted book added successfully");
+    }
+    @DeleteMapping("/wanted")
+    public ResponseEntity<String> removeWantedBooks(@RequestParam UUID bookId){
+        UUID userId = SecurityUtil.getCurrentUserId();
+        wantedBookService.removeWantedBook(bookId, userId);
+        return  ResponseEntity.status(HttpStatus.OK).body("Wanted book removed successfully");
     }
     @GetMapping("/exchange/matches")
     public void matched(){

@@ -26,7 +26,7 @@ public class MatchService {
 
     public List<ExchangeMatchDTO> findMatches(UUID currentUserId) {
 
-        List<Book> myOwned = ownedBookRepository.findBooksByUserId(currentUserId);
+        List<Book> myOwned = ownedBookRepository.findBooksByUserId2(currentUserId);
         List<Book> myWanted = wantedBookRepository.findBooksByUserId(currentUserId);
 
         List<OwnedBook> candidates =

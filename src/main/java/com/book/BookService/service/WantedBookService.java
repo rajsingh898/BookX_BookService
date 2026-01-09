@@ -54,4 +54,14 @@ public class WantedBookService {
         wantedBookRepository.save(wantedBook);
     }
 
+    @Transactional
+    public void removeWantedBook(UUID bookId, UUID userId) {
+
+        if (!wantedBookRepository.existsByBook_IdAndUserId(bookId, userId)) {
+            throw new RuntimeException("Wanted book not found for this user");
+        }
+
+        wantedBookRepository.deleteByBook_IdAndUserId(bookId, userId);
+    }
+
 }
