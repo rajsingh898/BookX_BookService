@@ -15,12 +15,15 @@ public interface WantedBookRepository extends JpaRepository<WantedBook, UUID> {
     boolean existsByUserIdAndBook(UUID userId, Book book);
     List<WantedBook> findByUserId(UUID userId);
 
-    List<WantedBook> findByBookIn(List<Book> books);
+    List<WantedBook> findByBook_Id(UUID bookId);
+
 
     boolean existsByUserIdAndBookIn(UUID userId, List<Book> books);
     boolean existsByBook_IdAndUserId(UUID bookId, UUID userId);
 
     void deleteByBook_IdAndUserId(UUID bookId, UUID userId);
 
+    long countByUserId(UUID userId);
+    List<WantedBook> findByBook(Book book);
 
 }

@@ -3,10 +3,7 @@ package com.book.BookService.contoller;
 import com.book.BookService.Security.SecurityUtil;
 import com.book.BookService.dto.*;
 import com.book.BookService.entity.Book;
-import com.book.BookService.service.BookService;
-import com.book.BookService.service.MatchService;
-import com.book.BookService.service.OwnedBookService;
-import com.book.BookService.service.WantedBookService;
+import com.book.BookService.service.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,11 +19,13 @@ public class BookController {
     private OwnedBookService ownedBookService;
     private WantedBookService wantedBookService;
     private MatchService matchService;
-    public BookController(BookService bookService,OwnedBookService ownedBookService,WantedBookService wantedBookService, MatchService matchService){
+    private DashboardService dashboardService;
+    public BookController(BookService bookService,OwnedBookService ownedBookService,WantedBookService wantedBookService, MatchService matchService,DashboardService dashboardService){
         this.bookService= bookService;
         this.ownedBookService = ownedBookService;
         this.wantedBookService=wantedBookService;
         this.matchService = matchService;
+        this.dashboardService = dashboardService;
     }
 
     @GetMapping("/all")
@@ -64,11 +63,7 @@ public class BookController {
                 UUID userId = SecurityUtil.getCurrentUserId();
                return ownedBookService.updateOwnedBook(bookId, userId, request);
            }
-
-
-
-
-
+           
     @GetMapping("/wanted")
     public List<Book> getWantedBooks(){
         UUID userId = SecurityUtil.getCurrentUserId();
@@ -87,10 +82,17 @@ public class BookController {
         wantedBookService.removeWantedBook(bookId, userId);
         return  ResponseEntity.status(HttpStatus.OK).body("Wanted book removed successfully");
     }
-    @GetMapping("/exchange/matches")
-    public void matched(){
-        UUID currentUserId = SecurityUtil.getCurrentUserId();
-          matchService.findMatches(currentUserId);
+    @GetMapping("/exchange/matches/{ownedBookId}")
+    public List<ExchangeOfferDTO> matches(@PathVariable UUID ownedBookId) {
+
+        UUID userId = SecurityUtil.getCurrentUserId();
+        return matchService.findMatchesForOwnedBook(userId, ownedBookId);
+    }
+
+    @GetMapping("/stats")
+    public BookStatsDTO stats() {
+        UUID userId = SecurityUtil.getCurrentUserId();
+        return dashboardService.getBookStats(userId);
     }
 
 

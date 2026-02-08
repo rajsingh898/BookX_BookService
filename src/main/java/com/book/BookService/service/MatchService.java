@@ -2,17 +2,21 @@ package com.book.BookService.service;
 
 import com.book.BookService.dto.BookSummaryDTO;
 import com.book.BookService.dto.ExchangeMatchDTO;
+import com.book.BookService.dto.ExchangeOfferDTO;
 import com.book.BookService.entity.Book;
 import com.book.BookService.entity.OwnedBook;
 import com.book.BookService.entity.WantedBook;
 import com.book.BookService.repository.OwnedBookRepository;
 import com.book.BookService.repository.WantedBookRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
 @Service
+@Transactional
 public class MatchService {
 
     private final OwnedBookRepository ownedBookRepository;
@@ -24,46 +28,75 @@ public class MatchService {
         this.wantedBookRepository = wantedBookRepository;
     }
 
-    public List<ExchangeMatchDTO> findMatches(UUID currentUserId) {
+    public List<ExchangeOfferDTO> findMatchesForOwnedBook(
+            UUID currentUserId,
+            UUID bookId
+    ) {
 
-        List<Book> myOwned = ownedBookRepository.findBooksByUserId2(currentUserId);
-        List<Book> myWanted = wantedBookRepository.findBooksByUserId(currentUserId);
+        // Only allow exchange-ready owned book
+        OwnedBook myOwnedBook =
+                ownedBookRepository
+                        .findByBook_IdAndUserIdAndExchangeReadyTrue(bookId, currentUserId)
+                        .orElseThrow(() -> new RuntimeException("Owned book not found or not ready for exchange"));
 
-        List<OwnedBook> candidates =
-                ownedBookRepository.findByBookIn(myWanted);
+        Book bookIAmOffering = myOwnedBook.getBook();
 
-        List<ExchangeMatchDTO> matches = new ArrayList<>();
+        // My wanted list
+        List<Book> myWanted =
+                wantedBookRepository.findBooksByUserId(currentUserId);
 
-        for (OwnedBook ob : candidates) {
-            UUID otherUserId = ob.getUserId();
+        var wantedBookIds = myWanted.stream()
+                .map(Book::getId)
+                .collect(java.util.stream.Collectors.toSet());
 
+        // Users who want my book
+        List<WantedBook> usersWhoWantMyBook =
+                wantedBookRepository.findByBook_Id(bookIAmOffering.getId());
+
+        List<ExchangeOfferDTO> offers = new ArrayList<>();
+
+        for (WantedBook wb : usersWhoWantMyBook) {
+
+            UUID otherUserId = wb.getUserId();
             if (otherUserId.equals(currentUserId)) continue;
 
-            List<WantedBook> whatTheyWant =
-                    wantedBookRepository.findByUserId(otherUserId);
+            //  Only fetch books ready for exchange
+            List<OwnedBook> theirOwnedBooks =
+                    ownedBookRepository.findByUserIdAndExchangeReadyTrue(otherUserId);
 
-            for (WantedBook wb : whatTheyWant) {
-                if (myOwned.contains(wb.getBook())) {
+            for (OwnedBook theirOwned : theirOwnedBooks) {
 
-                    ExchangeMatchDTO dto = new ExchangeMatchDTO();
+                if (wantedBookIds.contains(theirOwned.getBook().getId())) {
+
+                    ExchangeOfferDTO dto = new ExchangeOfferDTO();
                     dto.setOtherUserId(otherUserId);
 
-                    dto.setTheyOffer(toSummary(ob.getBook()));
-                    dto.setTheyWant(toSummary(wb.getBook()));
+                    dto.setMyBook(toSummary(bookIAmOffering));
+                    dto.setTheirBook(toSummary(theirOwned.getBook()));
+                    dto.setTheirBookCondition(theirOwned.getCondition());
 
-                    matches.add(dto);
+                    offers.add(dto);
+                    //show only max 5 matches
+                    if (offers.size() >= 5) {
+                        return offers;
+                    }
                 }
             }
         }
 
-        return matches;
+        return offers;
     }
+
+
 
     private BookSummaryDTO toSummary(Book book) {
         BookSummaryDTO dto = new BookSummaryDTO();
+        dto.setId(book.getId());
         dto.setTitle(book.getTitle());
         dto.setAuthor(book.getAuthor());
         dto.setGenre(book.getGenre());
+        dto.setDescription(book.getDescription());
         return dto;
     }
+
 }

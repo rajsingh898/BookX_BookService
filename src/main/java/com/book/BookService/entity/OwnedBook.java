@@ -2,6 +2,9 @@ package com.book.BookService.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -11,7 +14,10 @@ import java.util.UUID;
         name = "owned_books",
         uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "book_id"})
 )
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+
 public class OwnedBook {
 
     @Id
@@ -21,7 +27,7 @@ public class OwnedBook {
     @Column(name = "user_id", nullable = false)
     private UUID userId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "book_id", nullable = false)
     private Book book;
 
